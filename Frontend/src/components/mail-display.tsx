@@ -1,6 +1,9 @@
 // In your MailDisplay component file
 "use client";
 
+// --- Import useEffect ---
+import React, { useEffect } from 'react'; // Make sure useEffect is imported
+
 import {
   Archive,
   ArchiveX,
@@ -25,19 +28,19 @@ import { Textarea } from "@/registry/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip";
 import { Mail } from "@/data/data";
 import { useTheme } from "@/context/ThemeContext";
-
-// Import Link from react-router-dom
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
-import { retrieveMessages, retrieveUserCID } from "@/contract/userMaps";
-import { retrieveMsg, retrieveUser } from "@/funs";
-import { decryptData, decryptPrivateKey } from "@/utils";
+// --- Make sure these imports are correct ---
+import { retrieveMessages, retrieveUserCID } from "@/contract/userMaps"; // Check paths
+import { retrieveMsg, retrieveUser } from "@/funs"; // Check paths
+import { decryptData, decryptPrivateKey } from "@/utils"; // Check paths
 
 interface MailDisplayProps {
   mail: Mail | null;
 }
 
-// Defined but not called here
+
+// Your existing getInbox function - KEEPING LOGIC INSIDE AS REQUESTED
 const getInbox = async () => {
   // 2. Get cookie safely (check if it exists)
   const currentCookieValue = Cookies.get("username");
@@ -69,6 +72,22 @@ const getInbox = async () => {
 
     console.log("Converted Array:", messageCIDS); // Now it's a real array
 
+    if (messageCIDS.length === 0) {
+        console.log("No message CIDs found.");
+        return []; // Return empty array or null
+    }
+
+    // --- Inefficiency Note: These should ideally be outside the loop ---
+    const userCID = await retrieveUserCID(currentCookieValue, hashPass); // Assuming hashPass not needed? Check definition
+    const userData = await retrieveUser(userCID);
+    if (!userData || !userData.privateKey) {
+        console.error("Could not retrieve user data or private key");
+        return null;
+    }
+    const decryptedPrivateKey = decryptPrivateKey(userData.privateKey, hashPass);
+    // --- End Inefficiency Note ---
+
+
     // Now iterate over the standard array
     for (const msgCID of messageCIDS) {
         console.log("Processing CID:", msgCID);
@@ -79,13 +98,27 @@ const getInbox = async () => {
              continue;
         }
 
-        // --- Rest of your logic ---
-        const msgData = await retrieveMsg(msgCID);
-         // ... (decryption, etc.) ...
+        try { // Add try-catch around individual message processing
+            // --- Rest of your logic ---
+            const msgData = await retrieveMsg(msgCID);
+
+            if (!msgData || !msgData.subject || !msgData.body) {
+                 console.warn(`Incomplete message data for CID ${msgCID}. Skipping decryption.`);
+                 continue;
+            }
+
+            const decryptedSub: string = decryptData(decryptedPrivateKey, msgData.subject);
+            const decryptedBody: string = decryptData(decryptedPrivateKey, msgData.body);
+            console.log(`Decrypted CID ${msgCID}: Subject: ${decryptedSub}`);
+            // console.log(decryptedBody); // Optional: less verbose log
+             // ... (decryption, etc.) ...
+        } catch (msgError) {
+            console.error(`Error processing message CID ${msgCID}:`, msgError);
+        }
 
     }
-
-    // Return processed data...
+     console.log("Finished processing all message CIDs.");
+    // Return processed data... (Currently returns undefined implicitly)
 
 } catch (error) {
     console.error("Failed to retrieve or process messages:", error);
@@ -93,10 +126,28 @@ const getInbox = async () => {
 }
 };
 
-// Called IMMEDIATELY when the file loads, outside any function// ERROR: currentCookieValue doesn't exist here!
+// --- REMOVED setTimeout block ---
+// setTimeout(() => {
+//   let t = 1;
+// while(t--){
+//   getInbox();
+// }
+// }, 1000);
+
 
 export function MailDisplay({ mail }: MailDisplayProps) {
   const { theme, toggleTheme } = useTheme();
+
+  // --- USE EFFECT HOOK to call getInbox ONCE on mount ---
+  useEffect(() => {
+    console.log("MailDisplay mounted. Calling getInbox...");
+    // Call getInbox when the component mounts
+    getInbox();
+
+    // Empty dependency array [] means this effect runs only ONCE after initial render
+  }, []);
+  // --- End useEffect Hook ---
+
 
   return (
     <div className="flex h-full flex-col">
@@ -127,7 +178,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </Tooltip>
 
           {/* Junk Button */}
-          {getInbox()}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
@@ -171,6 +221,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
         {/* Right side buttons (Reply, etc.) */}
         <div className="ml-auto flex items-center gap-2">
+             {/* ... Reply/Forward buttons ... */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
@@ -201,7 +252,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         </div>
         <Separator orientation="vertical" className="mx-2 h-6" />
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+             {/* ... More menu ... */}
+             <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" disabled={!mail}>
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">More</span>
@@ -217,64 +269,67 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       </div>
       <Separator />
       {mail ? (
-        <div className="flex flex-1 flex-col">
-          <div className="flex items-start p-4">
-            <div className="flex items-start gap-4 text-sm">
-              <Avatar>
-                <AvatarImage alt={mail.name} />
-                <AvatarFallback>
-                  {mail.name
-                    .split(" ")
-                    .map((chunk) => chunk[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid gap-1">
-                <div className="font-semibold">{mail.name}</div>
-                <div className="line-clamp-1 text-xs">{mail.subject}</div>
-                <div className="line-clamp-1 text-xs">
-                  <span className="font-medium">Reply-To:</span> {mail.email}
-                </div>
+        // Display the selected mail details (passed via props)
+           <div className="flex flex-1 flex-col">
+               {/* ... mail details display ... */}
+               <div className="flex items-start p-4">
+                 <div className="flex items-start gap-4 text-sm">
+                   <Avatar>
+                     <AvatarImage alt={mail.name} />
+                     <AvatarFallback>
+                       {mail.name
+                         .split(" ")
+                         .map((chunk) => chunk[0])
+                         .join("")}
+                     </AvatarFallback>
+                   </Avatar>
+                   <div className="grid gap-1">
+                     <div className="font-semibold">{mail.name}</div>
+                     <div className="line-clamp-1 text-xs">{mail.subject}</div>
+                     <div className="line-clamp-1 text-xs">
+                       <span className="font-medium">Reply-To:</span> {mail.email}
+                     </div>
+                   </div>
+                 </div>
+                 {mail.date && (
+                   <div className="ml-auto text-xs text-muted-foreground">
+                     {format(new Date(mail.date), "PPpp")}
+                   </div>
+                 )}
+               </div>
+               <Separator />
+               <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
+                 {mail.text}
+               </div>
+               <Separator className="mt-auto" />
+               {/* ... reply form ... */}
+               <div className="p-4">
+                <form>
+                  <div className="grid gap-4">
+                    <Textarea
+                      className="p-4"
+                      placeholder={`Reply ${mail.name}...`}
+                    />
+                    <div className="flex items-center">
+                      <Label
+                        htmlFor="mute"
+                        className="flex items-center gap-2 text-xs font-normal"
+                      >
+                        <Switch id="mute" aria-label="Mute thread" /> Mute this
+                        thread
+                      </Label>
+                      <Button
+                        onClick={(e) => e.preventDefault()}
+                        size="sm"
+                        className="ml-auto"
+                      >
+                        Send
+                      </Button>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
-            {mail.date && (
-              <div className="ml-auto text-xs text-muted-foreground">
-                {format(new Date(mail.date), "PPpp")}
-              </div>
-            )}
-          </div>
-          <Separator />
-          <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
-            {mail.text}
-          </div>
-          <Separator className="mt-auto" />
-          <div className="p-4">
-            <form>
-              <div className="grid gap-4">
-                <Textarea
-                  className="p-4"
-                  placeholder={`Reply ${mail.name}...`}
-                />
-                <div className="flex items-center">
-                  <Label
-                    htmlFor="mute"
-                    className="flex items-center gap-2 text-xs font-normal"
-                  >
-                    <Switch id="mute" aria-label="Mute thread" /> Mute this
-                    thread
-                  </Label>
-                  <Button
-                    onClick={(e) => e.preventDefault()}
-                    size="sm"
-                    className="ml-auto"
-                  >
-                    Send
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
       ) : (
         <div className="p-8 text-center text-muted-foreground">
           No message selected
