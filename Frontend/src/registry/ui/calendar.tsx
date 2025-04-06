@@ -1,7 +1,5 @@
 "use client"
 
-import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
 // Import DayPickerProps for better type handling
 import { DayPicker, DayPickerProps } from "react-day-picker" // Make sure DayPickerProps is imported
 

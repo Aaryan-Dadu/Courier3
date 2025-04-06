@@ -4,7 +4,6 @@ import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 import { cn } from "@/lib/utils"
 import { Badge } from "@/registry/ui/badge"
 import { ScrollArea } from "@/registry/ui/scroll-area"
-import { Separator } from "@/registry/ui/separator"
 import { Mail } from "@/data/data"
 import { useMail } from "@/use-mail"
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom'; // <--- Import Link
 import "@/App.css";
 import { cn } from '@/lib/utils';

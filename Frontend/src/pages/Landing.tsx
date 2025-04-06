@@ -1,5 +1,4 @@
 // src/pages/LandingPage.jsx
-import React from 'react';
 import Spline from '@splinetool/react-spline';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/registry/ui/button"; // Adjust path as needed

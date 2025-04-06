@@ -62,7 +62,6 @@
 
 // src/App.jsx (or App.tsx)
 
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // Import your page components

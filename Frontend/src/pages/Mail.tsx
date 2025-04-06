@@ -1,4 +1,3 @@
-import React from 'react';
 import Cookies from 'js-cookie';
 import {Mail} from '@/components/mail'; // Adjust the import path as needed
 import { accounts, mails } from '@/data/data'; // Adjust the import path as needed

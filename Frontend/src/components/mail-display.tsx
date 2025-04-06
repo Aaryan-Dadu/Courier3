@@ -1,6 +1,5 @@
 "use client"; // <-- Add this directive
 
-import * as React from "react";
 // Removed: addDays, addHours, format, nextSaturday
 // Removed: Clock icon
 import {
