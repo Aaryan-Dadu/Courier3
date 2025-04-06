@@ -1,7 +1,6 @@
-"use client"; // <-- Add this directive
+// In your MailDisplay component file
+"use client";
 
-// Removed: addDays, addHours, format, nextSaturday
-// Removed: Clock icon
 import {
   Archive,
   ArchiveX,
@@ -10,51 +9,112 @@ import {
   Reply,
   ReplyAll,
   Trash2,
-  Moon, // <-- Add Moon icon
-  Sun, // <-- Add Sun icon
+  Moon,
+  Sun,
+  Edit, // Compose icon
 } from "lucide-react";
-import { format } from "date-fns/format"; // Keep format if used elsewhere (like mail date)
-
-import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/registry/ui/dropdown-menu";
+import { format } from "date-fns/format";
+import { DropdownMenuContent, DropdownMenuItem } from "@/registry/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/registry/ui/avatar";
 import { Button } from "@/registry/ui/button";
-// Removed: Calendar
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from "@/registry/ui/nydropdown-menu"; // Assuming ny means custom
+import { DropdownMenu, DropdownMenuTrigger } from "@/registry/ui/nydropdown-menu";
 import { Label } from "@/registry/ui/label";
-// Removed: Popover, PopoverContent, PopoverTrigger
 import { Separator } from "@/registry/ui/separator";
 import { Switch } from "@/registry/ui/switch";
 import { Textarea } from "@/registry/ui/textarea";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/registry/ui/tooltip";
-import { Mail } from "@/data/data"; // Assuming Mail type definition exists
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip";
+import { Mail } from "@/data/data";
+import { useTheme } from "@/context/ThemeContext";
 
-// Import your theme hook (adjust path if necessary)
-import { useTheme } from "@/context/ThemeContext"; // <-- Adjust path as needed
+// Import Link from react-router-dom
+import { Link } from "react-router-dom";
+import Cookies from "js-cookie";
+import { retrieveMessages, retrieveUserCID } from "@/contract/userMaps";
+import { retrieveMsg, retrieveUser } from "@/funs";
+import { decryptData, decryptPrivateKey } from "@/utils";
 
 interface MailDisplayProps {
   mail: Mail | null;
 }
 
-export function MailDisplay({ mail }: MailDisplayProps) {
-  // Get theme context
-  const { theme, toggleTheme } = useTheme(); // <-- Use the hook
+// Defined but not called here
+const getInbox = async () => {
+  // 2. Get cookie safely (check if it exists)
+  const currentCookieValue = Cookies.get("username");
+  const hashPass = Cookies.get("password");
 
-  // const today = new Date() // Only needed if you use it elsewhere
+  if (!currentCookieValue) {
+      console.error("Username cookie not found.");
+      // Decide how to handle missing cookie: return null, empty array, or throw error
+      return null;
+  }
+  if(!hashPass){
+    console.error("Password not found");
+    return null;
+  }
+
+  try {
+    const messageCIDSResult = await retrieveMessages(currentCookieValue);
+    console.log("Raw Result:", messageCIDSResult);
+
+    // Check if the result is valid and array-like
+    if (!messageCIDSResult || typeof messageCIDSResult.length !== 'number') {
+         console.error("retrieveMessages did not return a valid array-like structure.");
+         return null;
+    }
+
+    // *** Convert the Result proxy to a standard JS array ***
+    const messageCIDS: string[] = Array.from(messageCIDSResult);
+    // Or using spread syntax: const messageCIDS: string[] = [...messageCIDSResult];
+
+    console.log("Converted Array:", messageCIDS); // Now it's a real array
+
+    // Now iterate over the standard array
+    for (const msgCID of messageCIDS) {
+        console.log("Processing CID:", msgCID);
+
+         // Ensure msgCID is actually a string before proceeding
+        if (typeof msgCID !== 'string' || !msgCID.startsWith('Qm')) {
+             console.warn(`Skipping invalid item found in message CIDs: ${msgCID}`);
+             continue;
+        }
+
+        // --- Rest of your logic ---
+        const msgData = await retrieveMsg(msgCID);
+         // ... (decryption, etc.) ...
+
+    }
+
+    // Return processed data...
+
+} catch (error) {
+    console.error("Failed to retrieve or process messages:", error);
+    return null;
+}
+};
+
+// Called IMMEDIATELY when the file loads, outside any function// ERROR: currentCookieValue doesn't exist here!
+
+export function MailDisplay({ mail }: MailDisplayProps) {
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center p-2">
         <div className="flex items-center gap-2">
+          {/* Compose Button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/compose">
+                <Button variant="outline" size="icon">
+                  <Edit className="h-4 w-4" />
+                  <span className="sr-only">Compose</span>
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Compose</TooltipContent>
+          </Tooltip>
+
           {/* Archive Button */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -67,6 +127,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </Tooltip>
 
           {/* Junk Button */}
+          {getInbox()}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
@@ -88,9 +149,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             <TooltipContent>Move to trash</TooltipContent>
           </Tooltip>
 
-        <Separator orientation="vertical" className="mx-1 h-6" />
+          <Separator orientation="vertical" className="mx-1 h-6" />
 
-          {/* --- START: Dark Mode Toggle Button --- */}
+          {/* Dark Mode Toggle Button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
@@ -106,10 +167,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               {theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             </TooltipContent>
           </Tooltip>
-          {/* --- END: Dark Mode Toggle Button --- */}
-
-          {/* --- SNOOZE BUTTON AND POPOVER REMOVED --- */}
-
         </div>
 
         {/* Right side buttons (Reply, etc.) */}
@@ -180,7 +237,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 </div>
               </div>
             </div>
-            {/* Keep date formatting if needed */}
             {mail.date && (
               <div className="ml-auto text-xs text-muted-foreground">
                 {format(new Date(mail.date), "PPpp")}

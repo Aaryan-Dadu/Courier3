@@ -69,6 +69,7 @@ import AuthenticationPage from '@/pages/Authentication'; // Your signup/initial 
 import LoginPage from '@/components/login-form'; // Your new login page
 import LandingPage from './pages/Landing';
 import Mail from '@/pages/Mail'
+import ComposeMail from '@/components/compose';
 // Import other pages as needed (e.g., Dashboard, NotFound)
 // import DashboardPage from './pages/DashboardPage';
 // import NotFoundPage from './pages/NotFoundPage';
@@ -90,6 +91,10 @@ function App() {
       <Route path="/signup" element={<AuthenticationPage />} />
 
       <Route path="/mail" element={<Mail/>} />
+
+      <Route path="/compose" element={<ComposeMail/>}/>
+
+
 
       {/* Add routes for other pages here */}
       {/* Example: <Route path="/dashboard" element={<DashboardPage />} /> */}
