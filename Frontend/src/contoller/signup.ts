@@ -4,9 +4,9 @@
 // Without them, TypeScript will often infer 'any' for their return types.
 // We'll assume the return types based on usage for this conversion.
 
-import { dbPost, signUp, sendMail, retrieveUser, retrieveMsg } from '../funs';
-import { generateKeyPair, encryptData, decryptData, hashPassword, encryptPrivateKey, decryptPrivateKey } from '../utils';
-import { createUser, addOutbox, addMessage, retrieveUserCID, retrieveMessages, retrieveOutbox, retrievePublicKey } from '../contract/userMaps';
+import { signUp } from '../funs';
+import { generateKeyPair, hashPassword, encryptPrivateKey} from '../utils';
+import { createUser } from '../contract/userMaps';
 // import {ethers} from 'ethers'; // Not directly used here
 // import dotenv from 'dotenv';
 

@@ -10,11 +10,11 @@ import contractArtifact from './userMapsABI.json';
 // const { default: contractArtifact } = await import('./userMapsABI.json', { with: { type: "json" } });
 
 const PRIVATE_KEY: string = "0xecc77ccbfb9ae9aaca37b2a6a9940750056fcf156a35cf8e5b6533d01011e95f";
-const PINATA_API_KEY: string = '0dfaba18f13392659c8f';
-const PINATA_API_SECRET: string = 'b851ef1ad9a5765beed92370b452085ac5e5bbaa7bfb3849082a6cb576513214';
+// const PINATA_API_KEY: string = '0dfaba18f13392659c8f';
+// const PINATA_API_SECRET: string = 'b851ef1ad9a5765beed92370b452085ac5e5bbaa7bfb3849082a6cb576513214';
 const CONTRACT_ADDRESS: string = '0x26A8921b07e6A50f9D7417D3Bd1B33d4B1538475';
 const RPC_URL: string = 'https://eth-sepolia.g.alchemy.com/v2/BxzYmU-8xP1gehpFVNVQZpdV9Xf41IOp';
-const PUBLIC_KEY: string = '0xBCa1f784838dE5BCcd4fc9Fefda8B9FA5590427c';
+// const PUBLIC_KEY: string = '0xBCa1f784838dE5BCcd4fc9Fefda8B9FA5590427c';
 
 // Set up provider and signer
 const provider: ethers.JsonRpcProvider = new ethers.JsonRpcProvider(RPC_URL);

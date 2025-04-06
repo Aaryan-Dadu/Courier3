@@ -1,8 +1,8 @@
 // login.ts
 
 import { retrieveMessages, retrieveUserCID } from '../contract/userMaps.js';
-import { dbPost, signUp, sendMail, retrieveUser, retrieveMsg } from '../funs';
-import { generateKeyPair, encryptData, decryptData, hashPassword, encryptPrivateKey, decryptPrivateKey } from '../utils';
+import {  retrieveUser, retrieveMsg } from '../funs';
+import {  decryptData, hashPassword,  decryptPrivateKey } from '../utils';
 
 
 export async function runLogin(username: string, password: string): Promise<void> {

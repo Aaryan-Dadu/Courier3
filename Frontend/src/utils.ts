@@ -6,7 +6,9 @@ import { JSEncrypt } from 'jsencrypt'; // Import jsencrypt
 
 function generateKeyPair(): { publicKey: string; privateKey: string } {
     // Use JSEncrypt to generate keys
-    const crypt = new JSEncrypt({ default_key_size: 2048 }); // Specify key size
+    // Specify key size as a STRING
+    const crypt = new JSEncrypt({ default_key_size: "2048" }); // <-- Fix: Pass size as a string
+
     crypt.getKey(); // Generate the key pair
 
     // Get keys in PEM format
@@ -19,6 +21,7 @@ function generateKeyPair(): { publicKey: string; privateKey: string } {
 
     return { publicKey, privateKey };
 }
+
 
 function encryptData(publicKey: string, data: string): string {
     const crypt = new JSEncrypt();

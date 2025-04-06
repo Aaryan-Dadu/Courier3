@@ -2,7 +2,7 @@
 "use client";
 
 // --- Import useEffect ---
-import React, { useEffect } from 'react'; // Make sure useEffect is imported
+// import React, { useEffect } from 'react'; // Make sure useEffect is imported
 
 import {
   Archive,
@@ -34,6 +34,7 @@ import Cookies from "js-cookie";
 import { retrieveMessages, retrieveUserCID } from "@/contract/userMaps"; // Check paths
 import { retrieveMsg, retrieveUser } from "@/funs"; // Check paths
 import { decryptData, decryptPrivateKey } from "@/utils"; // Check paths
+import { useEffect } from "react";
 
 interface MailDisplayProps {
   mail: Mail | null;
@@ -108,7 +109,7 @@ const getInbox = async () => {
             }
 
             const decryptedSub: string = decryptData(decryptedPrivateKey, msgData.subject);
-            const decryptedBody: string = decryptData(decryptedPrivateKey, msgData.body);
+            // const decryptedBody: string = decryptData(decryptedPrivateKey, msgData.body);
             console.log(`Decrypted CID ${msgCID}: Subject: ${decryptedSub}`);
             // console.log(decryptedBody); // Optional: less verbose log
              // ... (decryption, etc.) ...
@@ -139,7 +140,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const { theme, toggleTheme } = useTheme();
 
   // --- USE EFFECT HOOK to call getInbox ONCE on mount ---
-  useEffect(() => {
+  useEffect (() => {
     console.log("MailDisplay mounted. Calling getInbox...");
     // Call getInbox when the component mounts
     getInbox();
